@@ -1,63 +1,239 @@
-// 💖 Pookie Service Worker - Offline & Auto Update
-const CACHE_NAME = "pookie-cache-v3"; // update version when files change
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>💖 Pookie’s Lovely Moments 💖</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#ff9ecd"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<style>
+:root{
+  --pink:#ff9ecd;--deep-pink:#f472b6;--purple:#c084fc;
+  --light-pink:#ffd5ec;--bg:#fff0f6;--text:#4a154b;
+  --radius:18px;--shadow:0 8px 24px rgba(255,150,200,.25);
+}
+body{margin:0;font-family:'Poppins',sans-serif;background:radial-gradient(circle at top left,var(--light-pink),var(--bg));color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+header{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;text-align:center;padding:1rem;font-weight:700;box-shadow:var(--shadow);}
+nav{display:flex;justify-content:space-around;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);position:sticky;top:0;z-index:10;}
+nav button{flex:1;border:none;background:none;padding:.8rem 0;font-weight:600;color:var(--text);cursor:pointer;}
+nav button.active{color:#fff;background:linear-gradient(90deg,var(--pink),var(--deep-pink));}
+main{flex:1;max-width:720px;margin:auto;padding:1rem;display:flex;flex-direction:column;gap:1rem;}
+.card{background:#fff;border-radius:var(--radius);padding:1.2rem;box-shadow:var(--shadow);}
+input,textarea,select,button{width:100%;padding:.8rem 1rem;margin-top:.4rem;border-radius:10px;border:1px solid var(--light-pink);font-family:inherit;font-size:1rem;}
+input:focus,textarea:focus,select:focus{border-color:var(--pink);box-shadow:0 0 6px var(--pink);}
+button.save{background:linear-gradient(90deg,var(--pink),var(--deep-pink));color:#fff;border:none;font-weight:600;margin-top:.8rem;}
+.footer{text-align:center;color:var(--deep-pink);padding:1rem 0;font-size:.9rem;}
+section{display:none;flex-direction:column;gap:1rem;}
+section.active{display:flex;}
+#symptomsBox{display:flex;flex-wrap:wrap;gap:.5rem;}
+#symptomsBox label{background:#ffe8f3;border-radius:8px;padding:4px 10px;}
+.tip{margin-top:.6rem;color:var(--deep-pink);font-weight:500;}
+@keyframes flash{0%{background:var(--light-pink);}100%{background:transparent;}}
+.tip-flash{animation:flash 1s ease;}
+@media(max-width:600px){header{font-size:1.1rem;}textarea{min-height:120px;}}
+</style>
+</head>
+<body>
+<header>💞 Pookie’s Lovely Moments 💞</header>
 
-// Files to always cache
-const FILES_TO_CACHE = [
-  "./",
-  "index.html",
-  "manifest.json",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "icons/pookie-badge.svg",
-  "icons/favicon.svg"
-];
+<div id="loginCard" class="card" style="max-width:380px;margin:2rem auto;">
+  <h2 style="text-align:center;">Login</h2>
+  <input id="username" placeholder="Username"/>
+  <input id="password" type="password" placeholder="Password"/>
+  <button onclick="login()">Login 💕</button>
+  <p id="loginMsg" style="color:var(--deep-pink);text-align:center;"></p>
+</div>
 
-// Install SW and pre-cache
-self.addEventListener("install", (event) => {
-  console.log("💖 Installing Pookie SW...");
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
-  );
-  self.skipWaiting();
+<nav id="tabs" style="display:none">
+  <button data-tab="home" class="active">Home</button>
+  <button data-tab="daily">Daily</button>
+  <button data-tab="health">Health</button>
+  <button data-tab="water">Water</button>
+</nav>
+
+<main id="app" style="display:none">
+  <!-- HOME -->
+  <section id="home" class="active">
+    <div class="card" id="greetCard">
+      <h2 id="greetText">Good day 💖</h2>
+      <p>Welcome back, my lovely Pookie!</p>
+    </div>
+    <div class="card" id="summaryCard">
+      <h3>Today’s Summary 🌸</h3>
+      <p id="sumText">Loading...</p>
+    </div>
+  </section>
+
+  <!-- DAILY NOTE -->
+  <section id="daily">
+    <div class="card">
+      <h2>💌 Daily Note</h2>
+      <input type="date" id="dailyDate"/>
+      <textarea id="dailyText" placeholder="Write your thoughts or message..."></textarea>
+      <select id="dailyMood">
+        <option value="">Mood?</option><option>🥰 Happy</option><option>😴 Sleepy</option><option>😇 Peaceful</option><option>🤒 Not well</option><option>🤩 Excited</option>
+      </select>
+      <button class="save" onclick="saveDaily()">Save Note 💖</button>
+    </div>
+  </section>
+
+  <!-- HEALTH -->
+  <section id="health">
+    <div class="card">
+      <h2>🩺 Health Tracker</h2>
+      <label>Feeling</label>
+      <select id="feeling"><option value="">Select</option><option>Fine</option><option>Tired</option><option>Sick</option><option>Cramps</option><option>Headache</option></select>
+      <label>Sleep (hours)</label>
+      <input type="number" id="sleep" min="0" max="24" placeholder="e.g. 7"/>
+      <label>Appetite</label>
+      <select id="appetite"><option value="">Select</option><option>Low</option><option>Normal</option><option>High</option></select>
+      <label>Symptoms</label>
+      <div id="symptomsBox">
+        <label><input type="checkbox" value="Cramps">Cramps</label>
+        <label><input type="checkbox" value="Headache">Headache</label>
+        <label><input type="checkbox" value="Cold">Cold</label>
+        <label><input type="checkbox" value="Stress">Stress</label>
+        <label><input type="checkbox" value="Back pain">Back pain</label>
+      </div>
+      <button class="save" onclick="saveHealth()">Save Health 💕</button>
+      <div id="healthTip" class="tip"></div>
+    </div>
+  </section>
+
+  <!-- WATER -->
+  <section id="water">
+    <div class="card">
+      <h2>💧 Water Intake</h2>
+      <input type="number" id="waterCups" min="0" max="20" placeholder="e.g. 8"/>
+      <button class="save" onclick="saveWater()">Save Water 💧</button>
+      <div id="waterTip" class="tip"></div>
+    </div>
+  </section>
+</main>
+
+<div class="footer">Made with 💗 just for my favorite girl 💋</div>
+
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js');}
+
+const API="https://fourcare.onrender.com/memories";
+const allowedUsers={8367226377:"Chinnu@123",Admin:"admin123"};
+let loggedIn=false;
+
+function login(){
+  const u=document.getElementById("username").value.trim();
+  const p=document.getElementById("password").value.trim();
+  if(allowedUsers[u]===p){
+    loggedIn=true;
+    document.getElementById("loginCard").style.display="none";
+    document.getElementById("tabs").style.display="flex";
+    document.getElementById("app").style.display="block";
+    setGreeting();
+    loadSummary();
+  }else document.getElementById("loginMsg").textContent="Invalid login 💔";
+}
+
+// tabs
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('main section').forEach(sec=>sec.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+  });
 });
 
-// Activate SW and remove old caches
-self.addEventListener("activate", (event) => {
-  console.log("✨ Activating new Pookie SW...");
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((name) => {
-          if (name !== CACHE_NAME) {
-            console.log("🧹 Deleting old cache:", name);
-            return caches.delete(name);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
+function setGreeting(){
+  const h=new Date().getHours();
+  let text="Hello, beautiful 💕";
+  if(h<12) text="Good Morning ☀️ Pookie!";
+  else if(h<18) text="Good Afternoon 🌸 Pookie!";
+  else text="Good Evening 🌙 Pookie!";
+  document.getElementById("greetText").textContent=text;
+}
 
-// Fetch from cache first, fallback to network
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return; // don't cache POST/PUT
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return (
-        response ||
-        fetch(event.request)
-          .then((res) => {
-            // Save new responses in cache
-            return caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, res.clone());
-              return res;
-            });
-          })
-          .catch(() =>
-            caches.match("offline.html").then((res) => res || new Response("You’re offline 💕"))
-          )
-      );
-    })
-  );
-});
+// --- POST helper
+async function postData(data){
+  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+}
+
+// --- Save Daily
+async function saveDaily(){
+  const date=document.getElementById("dailyDate").value||new Date().toISOString().slice(0,10);
+  const text=document.getElementById("dailyText").value.trim();
+  const mood=document.getElementById("dailyMood").value;
+  if(!text)return alert("Write something 💌");
+  await postData({date,text,mood,section:"daily"});
+  document.getElementById("dailyText").value="";
+  document.getElementById("dailyMood").value="";
+  alert("Saved successfully 💖");
+  loadSummary();
+}
+
+// --- Save Health + Suggestions
+async function saveHealth(){
+  const date=new Date().toISOString().slice(0,10);
+  const feeling=document.getElementById("feeling").value;
+  const sleep=parseFloat(document.getElementById("sleep").value||0);
+  const appetite=document.getElementById("appetite").value;
+  const symptoms=[...document.querySelectorAll("#symptomsBox input:checked")].map(cb=>cb.value);
+  await postData({date,feeling,sleep,appetite,symptoms,section:"health"});
+  const tips=[];
+  if(sleep&&sleep<6)tips.push("Try to rest a bit more tonight 😴");
+  else if(sleep>9)tips.push("Plenty of sleep! Keep your rhythm 🌸");
+  if(feeling==="Tired"||feeling==="Cramps")tips.push("Gentle stretching or warm tea might help 💕");
+  if(appetite==="Low")tips.push("Eat small healthy meals today 🍎");
+  if(symptoms.includes("Stress"))tips.push("Take deep breaths and relax, Pookie 🌼");
+  const tip=document.getElementById("healthTip");
+  tip.textContent=tips.join(" ");
+  tip.classList.add("tip-flash");
+  setTimeout(()=>tip.classList.remove("tip-flash"),1000);
+  document.querySelectorAll("#health input,#health select").forEach(el=>{
+    if(el.type==="checkbox")el.checked=false;else el.value="";
+  });
+  loadSummary();
+}
+
+// --- Save Water + Suggestions
+async function saveWater(){
+  const date=new Date().toISOString().slice(0,10);
+  const water=parseFloat(document.getElementById("waterCups").value||0);
+  if(!water)return alert("Enter water intake 💧");
+  await postData({date,water,section:"water"});
+  const tip=document.getElementById("waterTip");
+  if(water<6)tip.textContent="Drink a bit more water to stay hydrated 💧";
+  else if(water>=8)tip.textContent="Perfect hydration! 🥰";
+  else tip.textContent="Good job! Keep sipping through the day 💧";
+  tip.classList.add("tip-flash");
+  setTimeout(()=>tip.classList.remove("tip-flash"),1000);
+  document.getElementById("waterCups").value="";
+  loadSummary();
+}
+
+// --- Load Summary for Home
+async function loadSummary(){
+  try{
+    const res=await fetch(API);
+    const data=await res.json();
+    if(!data.length)return;
+    const today=new Date().toISOString().slice(0,10);
+    const todayData=data.filter(d=>d.date===today);
+    let text="No data yet 💕";
+    if(todayData.length){
+      const w=todayData.find(d=>d.section==="water");
+      const h=todayData.find(d=>d.section==="health");
+      const d=todayData.find(d=>d.section==="daily");
+      text="";
+      if(d)text+=`Mood: ${d.mood||"—"} | `;
+      if(h&&h.sleep)text+=`Sleep: ${h.sleep} hrs | `;
+      if(w&&w.water)text+=`Water: ${w.water} cups`;
+    }
+    document.getElementById("sumText").textContent=text;
+  }catch(e){document.getElementById("sumText").textContent="Can't load summary";console.log(e);}
+}
+</script>
+</body>
+</html>
