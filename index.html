@@ -2,57 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>💖 Pookie’s Lovely Moments 💖</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <meta name="theme-color" content="#ff9ecd" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="manifest.json" />
+  <title>💖 Pookie’s Lovely Moments 💖</title>
+
   <style>
-    :root {
+    :root{
       --pink:#ff9ecd;--light-pink:#ffd5ec;--purple:#c084fc;--deep-pink:#f472b6;
       --bg:#fff0f6;--text:#4a154b;--card-bg:#fff7fb;
       --shadow:0 10px 25px rgba(255,150,200,.25);--radius:20px;
+      --safe-padding:clamp(10px,4vw,30px);
+      --max-width:720px;
     }
-    *{box-sizing:border-box;}
-    body{margin:0;font-family:Poppins,sans-serif;background:radial-gradient(circle at top left,var(--light-pink),var(--bg));color:var(--text);min-height:100vh;}
-    header{background:linear-gradient(90deg,var(--pink),var(--purple));padding:1rem 2rem;display:flex;align-items:center;justify-content:center;color:white;box-shadow:var(--shadow);}
-    main{display:flex;flex-direction:column;gap:1.5rem;padding:1.5rem;max-width:900px;margin:0 auto;}
-    .card{background:var(--card-bg);border-radius:var(--radius);padding:1.2rem;box-shadow:var(--shadow);}
-    input,textarea,select,button{width:100%;padding:.8rem 1rem;border-radius:12px;border:1px solid var(--light-pink);font-family:inherit;font-size:1rem;outline:none;transition:.2s;}
-    input:focus,textarea:focus,select:focus{border-color:var(--pink);box-shadow:0 0 6px var(--pink);}
-    button{background:linear-gradient(90deg,var(--pink),var(--deep-pink));border:none;color:white;font-weight:600;cursor:pointer;transition:transform .2s;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Poppins',sans-serif;
+      background:radial-gradient(circle at top left,var(--light-pink),var(--bg));
+      color:var(--text);display:flex;flex-direction:column;min-height:100vh;
+    }
+    header{
+      background:linear-gradient(90deg,var(--pink),var(--purple));
+      color:white;text-align:center;
+      padding:1rem;font-weight:700;box-shadow:var(--shadow);
+      font-size:clamp(1.1rem,2vw,1.6rem);
+    }
+    main{
+      flex:1;width:100%;max-width:var(--max-width);
+      margin-inline:auto;padding-inline:var(--safe-padding);
+      display:flex;flex-direction:column;gap:1rem;
+    }
+    .card{
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      padding:1.2rem;
+      box-shadow:var(--shadow);
+    }
+    input,textarea,select,button{
+      width:100%;padding:.8rem 1rem;margin-top:.5rem;
+      border-radius:12px;border:1px solid var(--light-pink);
+      font-family:inherit;font-size:1rem;outline:none;transition:.2s;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    }
+    input:focus,textarea:focus,select:focus{
+      border-color:var(--pink);box-shadow:0 0 6px var(--pink);
+    }
+    button{
+      background:linear-gradient(90deg,var(--pink),var(--deep-pink));
+      border:none;color:white;font-weight:600;cursor:pointer;
+      transition:transform .2s;
+    }
     button:hover{transform:scale(1.05);}
     .entries{display:flex;flex-direction:column;gap:1rem;}
-    .entry{background:white;border-radius:16px;padding:1rem;box-shadow:0 4px 15px rgba(255,182,193,.3);}
+    .entry{
+      background:white;border-radius:16px;padding:1rem;
+      box-shadow:0 4px 15px rgba(255,182,193,.3);
+      word-wrap:break-word;
+    }
     .entry h4{margin:0 0 .4rem;color:var(--deep-pink);}
-    .entry p{margin:0;white-space:pre-wrap;}
     .footer{text-align:center;color:var(--deep-pink);padding:1rem 0;font-size:.9rem;}
-    #loginCard{max-width:400px;margin:4rem auto;}
+    #symptomsBox{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0;}
+    #symptomsBox label{background:#ffe8f3;border-radius:8px;padding:4px 10px;}
+
+    /* extra small phones */
+    @media(max-width:380px){
+      body{font-size:15px;}
+      input,textarea,select,button{font-size:.95rem;padding:.7rem;}
+      .card{padding:.9rem;}
+    }
+    /* tablets */
+    @media(min-width:768px) and (max-width:1024px){
+      main{max-width:800px;}
+      .entries{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    }
+    /* large screens */
+    @media(min-width:1200px){
+      main{max-width:900px;}
+      body{font-size:18px;}
+    }
   </style>
 </head>
 <body>
-  <header><h2>💞 Pookie’s Lovely Moments 💞</h2></header>
+  <header>💞 Pookie’s Lovely Moments 💞</header>
 
-  <!-- Login box -->
-  <div id="loginCard" class="card">
-    <h2>Login</h2>
-    <input id="username" placeholder="Username"/>
-    <input id="password" type="password" placeholder="Password"/>
+  <!-- Login -->
+  <div id="loginCard" class="card" style="max-width:380px;margin:2rem auto;">
+    <h2 style="text-align:center;">Login</h2>
+    <input id="username" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
     <button onclick="login()">Login 💕</button>
-    <p id="loginMsg" style="color:var(--deep-pink)"></p>
+    <p id="loginMsg" style="color:var(--deep-pink);text-align:center;"></p>
   </div>
 
-  <!-- Main content (hidden until login) -->
+  <!-- App -->
   <main id="app" style="display:none">
     <div class="card">
-      <h2>Write Today’s Memory ✨</h2>
+      <h2 style="text-align:center;">Write Today’s Memory ✨</h2>
+
       <input type="date" id="date" />
-      <textarea id="message" placeholder="Write something sweet... 💌"></textarea>
+
+      <label>💖 How are you feeling?</label>
+      <select id="feeling">
+        <option value="">Select</option>
+        <option>Fine</option><option>Tired</option>
+        <option>Sick</option><option>Cramps</option><option>Headache</option>
+      </select>
+
+      <label>😴 Sleep hours</label>
+      <input type="number" id="sleep" min="0" max="24" placeholder="e.g. 7" />
+
+      <label>💧 Water intake (cups)</label>
+      <input type="number" id="water" min="0" max="20" placeholder="e.g. 8" />
+
+      <label>🏃 Exercise / Steps</label>
+      <input type="text" id="exercise" placeholder="e.g. 30 min yoga" />
+
+      <label>🍽️ Appetite</label>
+      <select id="appetite">
+        <option value="">Select</option>
+        <option>Low</option><option>Normal</option><option>High</option>
+      </select>
+
+      <label>🩸 Symptoms</label>
+      <div id="symptomsBox">
+        <label><input type="checkbox" value="Cramps"> Cramps</label>
+        <label><input type="checkbox" value="Headache"> Headache</label>
+        <label><input type="checkbox" value="Cold"> Cold</label>
+        <label><input type="checkbox" value="Stress"> Stress</label>
+        <label><input type="checkbox" value="Back pain"> Back pain</label>
+      </div>
+
+      <label>💌 Write something sweet or note</label>
+      <textarea id="message" placeholder="Write anything..."></textarea>
+
+      <label>😇 Mood</label>
       <select id="mood">
         <option value="">Mood?</option>
         <option>🥰 Happy</option><option>😴 Sleepy</option>
         <option>😇 Peaceful</option><option>🤒 Not well</option><option>🤩 Excited</option>
       </select>
+
       <button id="saveBtn">Save Memory 💖</button>
     </div>
+
     <div class="card">
       <h2>Our Lovely Memories 🧸</h2>
       <div id="entries" class="entries"></div>
@@ -61,52 +155,72 @@
 
   <div class="footer">Made with 💗 just for my favorite girl 💋</div>
 
-  <script>
-    const API = "https://fourcare.onrender.com/memories";
-    const allowedUsers = { pookie: "love123", you: "admin123" }; // 💖 set usernames & passwords here
-    let loggedIn = false;
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js');}
 
-    async function login(){
-      const u=document.getElementById("username").value.trim();
-      const p=document.getElementById("password").value.trim();
-      if(allowedUsers[u] && allowedUsers[u]===p){
-        loggedIn=true;
-        document.getElementById("loginCard").style.display="none";
-        document.getElementById("app").style.display="flex";
-        loadMemories();
-      } else {
-        document.getElementById("loginMsg").textContent="Invalid login 💔";
-      }
-    }
+const API="https://fourcare.onrender.com/memories";
+const allowedUsers={8367226322:"Chinnu@123",8019297233:"PhanendraSana@"};
+let loggedIn=false;
 
-    document.getElementById("saveBtn").addEventListener("click", async ()=>{
-      if(!loggedIn)return alert("Please login first 💕");
-      const date=document.getElementById("date").value||new Date().toISOString().slice(0,10);
-      const text=document.getElementById("message").value.trim();
-      const mood=document.getElementById("mood").value;
-      if(!text)return alert("Write something first 💌");
+function login(){
+  const u=document.getElementById("username").value.trim();
+  const p=document.getElementById("password").value.trim();
+  if(allowedUsers[u]===p){
+    loggedIn=true;
+    document.getElementById("loginCard").style.display="none";
+    document.getElementById("app").style.display="block";
+    loadMemories();
+  }else{
+    document.getElementById("loginMsg").textContent="Invalid login 💔";
+  }
+}
 
-      await fetch(API,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({date,text,mood,images:[]})
-      });
-      document.getElementById("message").value="";
-      document.getElementById("mood").value="";
-      loadMemories();
-    });
+document.getElementById("saveBtn").addEventListener("click",async()=>{
+  if(!loggedIn)return alert("Please login first 💕");
+  const date=document.getElementById("date").value||new Date().toISOString().slice(0,10);
+  const text=document.getElementById("message").value.trim();
+  const mood=document.getElementById("mood").value;
+  const feeling=document.getElementById("feeling").value;
+  const sleep=document.getElementById("sleep").value;
+  const water=document.getElementById("water").value;
+  const exercise=document.getElementById("exercise").value;
+  const appetite=document.getElementById("appetite").value;
+  const symptoms=[...document.querySelectorAll("#symptomsBox input:checked")].map(cb=>cb.value);
 
-    async function loadMemories(){
-      const res=await fetch(API);
-      const data=await res.json();
-      const entriesDiv=document.getElementById("entries");
-      if(!data.length){ entriesDiv.innerHTML="<p>No lovely memories yet 💌</p>"; return;}
-      entriesDiv.innerHTML=data.map(e=>`
-        <div class="entry">
-          <h4>${e.date||""} ${e.mood||""}</h4>
-          <p>${e.text||""}</p>
-        </div>`).join("");
-    }
-  </script>
+  if(!text && !feeling && !symptoms.length)
+    return alert("Please add some details 💌");
+
+  const payload={date,text,mood,feeling,sleep,water,exercise,appetite,symptoms};
+
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  });
+
+  document.querySelectorAll("input,textarea,select").forEach(el=>{
+    if(el.type==="checkbox")el.checked=false;else el.value="";
+  });
+  loadMemories();
+});
+
+async function loadMemories(){
+  const res=await fetch(API);
+  const data=await res.json();
+  const entries=document.getElementById("entries");
+  if(!data.length){entries.innerHTML="<p>No lovely memories yet 💌</p>";return;}
+  entries.innerHTML=data.map(e=>`
+    <div class="entry">
+      <h4>${e.date||""} ${e.mood||""}</h4>
+      <p>${e.text||""}</p>
+      ${e.feeling?`<p>Feeling: ${e.feeling}</p>`:""}
+      ${e.sleep?`<p>Sleep: ${e.sleep} hrs</p>`:""}
+      ${e.water?`<p>Water: ${e.water} cups</p>`:""}
+      ${e.exercise?`<p>Exercise: ${e.exercise}</p>`:""}
+      ${e.appetite?`<p>Appetite: ${e.appetite}</p>`:""}
+      ${e.symptoms&&e.symptoms.length?`<p>Symptoms: ${e.symptoms.join(", ")}</p>`:""}
+    </div>`).join("");
+}
+</script>
 </body>
 </html>
