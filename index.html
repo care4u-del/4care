@@ -914,20 +914,27 @@ closePopup.addEventListener('click', () => {
   console.log('🌸 Popup closed by user — will show again next visit');
   installPopup.classList.add('hidden');
 });
-  /* 🌸 Send notification messages to service worker */
+/* 💞 Cute Notification System */
 async function sendCuteNotification(title, body) {
-  if (!("serviceWorker" in navigator)) return;
+  if (!("serviceWorker" in navigator)) {
+    console.log("❌ Service worker not supported");
+    return;
+  }
+
   const reg = await navigator.serviceWorker.ready;
 
+  // Request permission if not granted
   if (Notification.permission !== "granted") {
     const perm = await Notification.requestPermission();
     if (perm !== "granted") {
-      alert("Please allow notifications 💖");
+      console.log("🚫 Notification permission denied");
       return;
     }
   }
 
+  // Send message to service worker
   if (reg.active) {
+    console.log("📩 Sending notification to SW:", title);
     reg.active.postMessage({
       type: "SHOW_NOTIFICATION",
       title,
@@ -938,35 +945,42 @@ async function sendCuteNotification(title, body) {
   }
 }
 
-/* 💞 Auto reminder system */
+/* 💧 Auto reminder system */
 function startCuteReminders() {
   const messages = [
-    ["💧 Hydration Time", "Chinnuu, drink some water 💕"],
-    ["🌸 Stretch Break", "Time to stretch your shoulders ✨"],
+    ["💧 Hydration Time", "Pookie, drink some water 💕"],
+    ["🌸 Stretch Break", "Get up and stretch your shoulders ✨"],
     ["💤 Rest Check", "Take a deep breath and relax 🌙"],
     ["💌 Write a Note", "Don’t forget to jot your thoughts 💖"]
   ];
 
-  console.log("🕒 Starting 30-minute cute reminders...");
+  console.log("🕒 Starting cute reminder system...");
+
+  // Send one instantly after load
+  setTimeout(() => {
+    sendCuteNotification("💖 Hi Sweetheart!", "I’ll remind you every 30 min to stay hydrated 🌈");
+  }, 4000);
+
+  // Every 30 minutes (set to 1 min for testing)
   setInterval(() => {
     const msg = messages[Math.floor(Math.random() * messages.length)];
+    console.log("🔔 Sending reminder:", msg[0]);
     sendCuteNotification(msg[0], msg[1]);
-  }, 1 * 60 * 1000); // every 30 min
-
-  // Immediate welcome reminder
-  setTimeout(() => {
-    sendCuteNotification("💖 Hi Chinnuu!", "I’ll remind you every 30 min to stay hydrated 🌈");
-  }, 5000);
+  }, 1 * 60 * 1000);
+  // For quick testing, replace 1 * 60 * 1000 with 1 * 60 * 1000
 }
 
-/* 🌼 Start reminders when ready */
+/* 🌼 Start reminders after everything is ready */
 window.addEventListener("load", () => {
-  if ("Notification" in window) {
+  if ("Notification" in window && "serviceWorker" in navigator) {
+    console.log("💬 Notifications supported!");
     if (Notification.permission === "granted" || Notification.permission === "default") {
       startCuteReminders();
     } else {
-      console.log("🙈 Notifications blocked by user");
+      console.log("🙈 Notifications are blocked by user.");
     }
+  } else {
+    console.log("❌ Notifications not supported in this browser.");
   }
 });
 
