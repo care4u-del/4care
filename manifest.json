@@ -40,13 +40,13 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/home-1080x1920.png",
+      "src": "ss1.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "/screenshots/tracker-1080x1920.png",
+      "src": "ss2.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow"
