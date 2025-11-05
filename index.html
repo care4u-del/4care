@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<link rel="manifest" href="/4care/manifest.json">
-<link rel="icon" type="image/png" href="/4care/icons/android-launchericon-192-192.png">
-<link rel="apple-touch-icon" href="/4care/icons/android-launchericon-192-192.png">
-<meta name="theme-color" content="#ff9aa2">
+  <link rel="manifest" href="/4care/manifest.json">
+  <link rel="icon" type="image/png" href="/4care/icons/android-launchericon-192-192.png">
+  <link rel="apple-touch-icon" href="/4care/icons/android-launchericon-192-192.png">
+  <meta name="theme-color" content="#ff9aa2">
 
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('service-worker.js')
-        .then(() => console.log("💖 Service Worker registered"))
-        .catch(err => console.log("Service Worker failed", err));
-    });
-  }
-</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('service-worker.js')
+          .then(() => console.log("💖 Service Worker registered"))
+          .catch(err => console.log("Service Worker failed", err));
+      });
+    }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
@@ -289,6 +288,73 @@
     .btn, .input, .select, .textarea { font-size: .92rem; padding: .8rem; }
     .footer { font-size: .85rem; }
   }
+
+  /* 💖 Cute Install Popup */
+  .install-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 192, 203, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(6px);
+  }
+  .popup-content {
+    background: #fff0f5;
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(255, 105, 180, 0.4);
+    padding: 2rem;
+    text-align: center;
+    max-width: 340px;
+    animation: popIn 0.5s ease;
+  }
+  .popup-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+    border-radius: 20%;
+    box-shadow: 0 2px 10px rgba(255, 105, 180, 0.3);
+  }
+  .popup-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1.5rem;
+  }
+  .btn-love {
+    background: linear-gradient(135deg, #ff9aa2, #ffb7b2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.7rem 1.3rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .btn-love:hover {
+    transform: scale(1.05);
+  }
+  .btn-cancel {
+    background: #fff;
+    color: #ff6f91;
+    border: 2px solid #ff6f91;
+    border-radius: 12px;
+    padding: 0.7rem 1.3rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-cancel:hover {
+    background: #ffe5ec;
+  }
+  .hidden { display: none; }
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
   </style>
 </head>
 <body>
@@ -445,10 +511,23 @@
 <div class="toast-wrap" id="toasts"></div>
 <div class="popup" id="centerPopup">Saved ✅</div>
 
+<!-- 💞 Cute Install Popup -->
+<div id="installPopup" class="install-popup hidden">
+  <div class="popup-content">
+    <img src="/4care/icons/android-launchericon-192-192.png" alt="App Logo" class="popup-logo">
+    <h2>💞 Add Daily Tracker to Home Screen?</h2>
+    <p>Get faster access to all your cute moments, even offline 💕</p>
+    <div class="popup-buttons">
+      <button id="installBtn" class="btn-love">Install Now 💖</button>
+      <button id="closePopup" class="btn-cancel">Maybe Later 🌸</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ========= Config ========= */
 const API = "https://fourcare.onrender.com/memories";
-const allowedUsers = {"8367226377":"Chinnuu19","admin":"adm"};
+const allowedUsers = {"8367226377":"Chinnuu319","8019297233":"Sana"};
 let currentUser = null;
 
 /* ========= Theme Toggle ========= */
@@ -735,7 +814,7 @@ async function loadSummary(){
     const today = new Date().toISOString().slice(0,10);
     const todayData = data
       .filter(d=>d.date===today && (!currentUser || d.user===currentUser))
-      .sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||''));
+      .sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||'')));
 
     const sumEl = document.getElementById('sumText');
     const listEl = document.getElementById('todayList');
@@ -793,11 +872,41 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+/* 💞 Cute Install Popup Logic */
+let deferredPrompt;
+const installPopup = document.getElementById('installPopup');
+const installBtn = document.getElementById('installBtn');
+const closePopup = document.getElementById('closePopup');
 
-</script>
-</body>
-</html>
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
 
+  // Show popup only once
+  if (!localStorage.getItem('pwaPromptShown')) {
+    setTimeout(() => installPopup.classList.remove('hidden'), 1500);
+    localStorage.setItem('pwaPromptShown', 'true');
+  }
+});
+
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+
+  installPopup.classList.add('hidden');
+  deferredPrompt.prompt();
+
+  const choice = await deferredPrompt.userChoice;
+  if (choice.outcome === 'accepted') {
+    console.log('💞 App installed successfully!');
+  } else {
+    console.log('🌸 User dismissed install prompt.');
+  }
+  deferredPrompt = null;
+});
+
+closePopup.addEventListener('click', () => {
+  installPopup.classList.add('hidden');
+});
 </script>
 </body>
 </html>
