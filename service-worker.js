@@ -2,9 +2,8 @@
 // 💖 Daily Tracker PWA Service Worker (Final)
 // =============================
 
-const CACHE_NAME = "daily-tracker-cache-v3"; // increment when assets change
-
-const BASE_PATH = "/4care"; // important for GitHub Pages projects
+const CACHE_NAME = "daily-tracker-cache-v4";
+const BASE_PATH = "/4care";
 const ASSETS = [
   `${BASE_PATH}/`,
   `${BASE_PATH}/index.html`,
@@ -47,10 +46,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Ignore non-GET or Chrome extension requests
   if (request.method !== "GET" || request.url.startsWith("chrome-extension")) return;
 
-  // For HTML pages → network first, fallback to cache
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -64,7 +61,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For other assets → cache first, then network fallback
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       return (
@@ -79,4 +75,27 @@ self.addEventListener("fetch", (event) => {
       );
     })
   );
+});
+
+// =============================
+// 💌 Cute System Notifications
+// =============================
+
+// Listen for messages from the page
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SHOW_NOTIFICATION") {
+    const { title, body } = event.data;
+    self.registration.showNotification(title, {
+      body,
+      icon: `${BASE_PATH}/icons/android-launchericon-192-192.png`,
+      badge: `${BASE_PATH}/icons/android-launchericon-72-72.png`,
+      vibrate: [200, 100, 200],
+    });
+  }
+});
+
+// Open app when tapping a notification
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(`${BASE_PATH}/index.html`));
 });
