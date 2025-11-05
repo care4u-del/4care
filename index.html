@@ -951,7 +951,7 @@ function startCuteReminders() {
   setInterval(() => {
     const msg = messages[Math.floor(Math.random() * messages.length)];
     sendCuteNotification(msg[0], msg[1]);
-  }, 30 * 60 * 1000); // every 30 min
+  }, 1 * 60 * 1000); // every 30 min
 
   // Immediate welcome reminder
   setTimeout(() => {
